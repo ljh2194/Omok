@@ -8,7 +8,7 @@ app.use(express.static('public'));
 
 // 라우팅 정의
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
+  res.sendFile(__dirname + "/bomb.html");
 });
 
 // 서버 실행

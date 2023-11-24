@@ -6,7 +6,7 @@
     <title>Document</title>
 </head>
 <body>
-    <h1>순수 JS로 테트리스 만들기</h1>
+    <h1>Vanila JS로 오목 만들기</h1>
     <div id="game_wrap">
         <div class="divide">
             <div id="game_info">
@@ -30,15 +30,6 @@
             </div>
         </div>
         <div class="divide">
-            <div class="next_block_wrap">
-                <div>next block</div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-            </div>    
         </div>
     </div>
 </body>
@@ -46,7 +37,7 @@
 <style>
 body{width:1300px;margin:0 auto; border: 1px solid black;}
 #game_wrap{display:grid;position: relative;grid-template-columns: 1fr 4fr 2fr; align-items: flex-end; width:100%;height:800px;border: 1px solid blue;}
-#game_board{display:grid;background: #BB7203; grid-template-columns: repeat(19, 1fr);grid-template-rows: repeat(19, 1fr);height:800px;margin:0 auto;border: 1px solid black;}
+#game_board{display:grid;background: #BB7203; grid-template-columns: repeat(19, 1fr);grid-template-rows: repeat(19, 1fr);height:665px;width:665px;margin:0 auto;border: 1px solid black;}
 #game_board > div{border:1px solid saddlebrown;}
 
 .divide{height:100%; }
@@ -66,33 +57,31 @@ body{width:1300px;margin:0 auto; border: 1px solid black;}
 
  var currentUser;   
 
- const to_x = [-1, 0 , 1]
- const to_y = [-1, 0 , 1]
-
- var checked_cell = [];
+ const to_x = [-1, 0, 1]
+ const to_y = [-1, 0, 1]
 
 document.addEventListener("DOMContentLoaded", function(){
+    resetBoard();
+});
 
+function resetBoard(){
     var board = '';
 
-    for(var x = 0; x < 19; x++){
+    for(var x = 18; x >= 0; x--){
         for(var y = 0; y < 19; y++){
             board += `<div class="cell" id="${x} ${y}"></div>`
         }
     }
-
     const gameBoard = document.getElementById('game_board');
     gameBoard.innerHTML = board;
 
     const cell = document.getElementsByClassName('cell')
-
     currentUser = 'black'
 
     for (var e of cell) {
         e.addEventListener("click",cellClick);
     }
-
-});
+}
 
 function cellClick(e){
 
@@ -107,55 +96,62 @@ function cellClick(e){
         checkWin(x, y);
 
         currentUser = currentUser == "black"? "white" : "black"
-
     }
-
 }
 
 function checkWin(current_x, current_y){
 
-    var step = 2;
-
     for (var x of to_x) {
         for (var y of to_y) {
 
-            if(x != 0 || y != 0)  {
+            if(x != 0 || y != 0 )  {
 
                 var near_x = Number(current_x) + Number(x)
                 var near_y = Number(current_y) + Number(y)
-                var near_cell_id = near_x + ' ' + near_y
 
-                // 근처 셀이 같은 색인지 체크
-                var near_cell_class = document.getElementById(near_cell_id).classList.contains(currentUser)
+                if(checkSameColor(near_x, near_y)){
 
-                if(near_cell_class){
-                    console.log(near_cell_id)
-                    nextCheck(near_x, near_y, x, y, step);
+                    var way1 = nextCheck(near_x, near_y, x, y, 0);
+
+                    var other_x = x == -1 ? 1 : x == 1 ?  -1 : 0 ;
+                    var other_y = y == -1 ? 1 : y == 1 ?  -1 : 0 ;
+
+                    var way2 = nextCheck(near_x, near_y, other_x, other_y, 0);
+
+                    if(way1 + way2 == 4)  {
+                        alert('Win');
+                        resetBoard();
+                        return false;
+                    }
                 }
             }
-
         }
     }
 
-    checked_cell = [];
 }
 
 function nextCheck(current_x, current_y, x, y, step){
-
-    if(step == 5) {
-        alert('Win');
-        location.reload();
-    }
-
+    
     var near_x = Number(current_x) + Number(x)
     var near_y = Number(current_y) + Number(y)
-    var near_cell_id = near_x + ' ' + near_y
-    
-    var near_cell_class = document.getElementById(near_cell_id).classList.contains(currentUser);
-    if(near_cell_class){
-        nextCheck(near_x, near_y, x, y, step+1);
+
+    if(checkSameColor(near_x, near_y)){
+        return nextCheck(near_x, near_y, x, y, step++);
+    } else {
+        return step;
     }
     
 }
 
+function checkSameColor(near_x, near_y){
+
+    if(near_x < 0 || near_y < 0 || near_x >= 19 || near_y >= 19) return false;
+
+    var near_cell_id = near_x + ' ' + near_y
+    return document.getElementById(near_cell_id).classList.contains(currentUser);
+}
 </script>
+
+
+
+
