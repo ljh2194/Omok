@@ -11,8 +11,8 @@
         <div class="divide">
             <div id="game_info">
                 <div id="high_score_wrap">
-                    <span>HIGH SCORE</span>
-                    <span>10,000</span>
+                    <span>현재 지뢰 갯수</span>
+                    <span >10,000</span>
                 </div>
                 <div id="round_wrap">
                     <span>ROUND</span>
@@ -30,6 +30,11 @@
             </div>
         </div>
         <div class="divide">
+            <div>
+                지뢰 갯수 설정
+                <input type="number" id="set_bomb" min="10" value="50">
+                <button type="button" onclick="setBombCount()">설정하기</button>
+            </div>
         </div>
     </div>
 </body>
@@ -46,6 +51,11 @@ body{width:1300px;margin:0 auto; border: 1px solid black;}
 #game_board > div.count3{color:red;}
 #game_board > div.count4{color:yellow;}
 #game_board > div.count5{color:pink;}
+#game_board > div p{margin:0;display:none;}
+
+#game_board > div.checked p{display:block;}
+
+
 .divide{height:100%; }
 
 /* 게임 정보 */
@@ -64,11 +74,8 @@ body{width:1300px;margin:0 auto; border: 1px solid black;}
 var bomb_count = 50;
 var board_size = 19;
 var bomb_coordinate = [];
-var empty_cell = [];
 
-const to_x = [-1, 0, 1];
-const to_y = [-1, 0, 1];
-const move_coordi = ['-1 -1','-1 0','-1 1','0 -1','0 1','1 -1','0 0','1 1']
+const move_coordi = ['-1 -1','-1 0','-1 1','0 -1','0 1','1 -1','1 0','1 1']
 
 
 document.addEventListener("DOMContentLoaded", function(){
@@ -99,13 +106,12 @@ function resetBoard(){
    for(var x = board_size; x > 0; x--){
        for(var y = 1; y <= board_size; y++){
             var coordi = x + '-' + y;
-            if(bomb_coordinate.indexOf(coordi) > -1)  board += `<div onclick="cellClick(this);" id="bomb" class="${coordi}"></div>`
-            else  board += `<div onclick="cellClick(this);" class="${coordi}"></div>`
+            if(bomb_coordinate.indexOf(coordi) > -1)  board += `<div onmousedown="cellClick(this);" id="bomb" class="cell_${coordi}"><p>0</p></div>`
+            else  board += `<div onmousedown="cellClick(this);" class="cell_${coordi}"><p>0</p></div>`
        }
    }
 
    gameBoard.innerHTML = board;
-
    setAroundBomb();
 }
 
@@ -114,77 +120,56 @@ function setAroundBomb(){
     for(var coordi of bomb_coordinate){
         
         const [curr_x, curr_y] = coordi.split('-')
-        
-        // var curr_x = Number(coordi.split('-')[0]);
-        // var curr_y = Number(coordi.split('-')[1]);;
-
-        // for(var x of to_x){
-        //     for(var y of to_y){
-
-        //         var next_x = curr_x + x;
-        //         var next_y = curr_y + y;
-        //         var cell_class = next_x + '-' + next_y;
-
-        //         if(next_x > 0 && next_y > 0 && next_x <= board_size && next_y <= board_size){
-        //             var bomb = document.getElementsByClassName(cell_class)[0].id;
-        //             if(bomb != 'bomb'){
-        //                 document.getElementsByClassName(cell_class)[0].classList.add('arroundBomb');
-        //                 var count = document.getElementsByClassName(cell_class)[0].innerText;
-        //                 count++;
-        //                 document.getElementsByClassName(cell_class)[0].innerText = count
-        //             }
-        //         }
-        //     }
-        // }
 
         for(var coordi of move_coordi){
 
             const [x, y] = coordi.split(' ');
 
-            var next_x = eval(curr_x + x);
-            var next_y = eval(curr_y + y);
-            var cell_class = next_x + '-' + next_y;
+            var next_x = Number(curr_x )+ Number(x);
+            var next_y = Number(curr_y )+ Number(y);
+            var cell_class = 'cell_' + next_x + '-' + next_y;
 
             if(next_x > 0 && next_y > 0 && next_x <= board_size && next_y <= board_size){
                 var bomb = document.getElementsByClassName(cell_class)[0].id;
                 if(bomb != 'bomb'){
                     document.getElementsByClassName(cell_class)[0].classList.add('arroundBomb');
-                    var count = document.getElementsByClassName(cell_class)[0].innerText;
+                    // var count = document.getElementsByClassName(cell_class)[0].innerText;
+                    var count = document.querySelector('.'+cell_class + ' p').innerText
                     count++;
-                    document.getElementsByClassName(cell_class)[0].innerText = count
+                    document.querySelector('.'+cell_class + ' p').innerText = count
                 }
             }
-
         }
-
-
-
-
     }
 }
 
 function cellClick(e){
 
+    console.log(event.button)
     const {id} = e;
-    const [curr_x, curr_y] = e.classList[0].split('-')
-
-    if(id == 'bomb'){
-
-        resetBoard();
-        alert('you lose');
-
-    } else {
-        check_cell(Number(curr_x), Number(curr_y));
+    const [curr_x, curr_y] = e.classList[0].replace('cell_','').split('-')
+    if(event.button == 0){
+        if(id == 'bomb'){
+            resetBoard();
+            alert('you lose');
+        } else {
+            check_cell(Number(curr_x), Number(curr_y));
+        }
     }
+  
 
 }
 
 // 셀 상태 구분
 function check_cell(curr_x, curr_y){
 
-    var cell =  curr_x + '-' + curr_y;
+    var cell =  'cell_' + curr_x + '-' + curr_y;
 
     if(document.getElementsByClassName(cell)[0].classList.contains('checked')) return false;
+
+    var count =  document.querySelector('.'+ cell+ ' p').innerText;
+    if(count == '0') document.querySelector('.'+ cell+ ' p').innerText = ' '
+
     document.getElementsByClassName(cell)[0].classList.add('checked');
 
     const isArround = document.getElementsByClassName(cell)[0].classList.contains('arroundBomb');
@@ -195,21 +180,19 @@ function check_cell(curr_x, curr_y){
 
     }  else {
 
-        for(var x of to_x){
+        for(var coordi of move_coordi){
+        
+            const [x, y] = coordi.split(' ');
 
-            for(var y of to_y){
+            var next_x = Number(curr_x )+ Number(x);
+            var next_y = Number(curr_y )+ Number(y);
+            var cell_class = 'cell_' + next_x + '-' + next_y;
 
-                var next_x = curr_x + x;
-                var next_y = curr_y + y;
-                var cell_class = next_x + '-' + next_y;
-
-                if(next_x > 0 && next_y > 0 && next_x <= board_size && next_y <= board_size){
+            if(next_x > 0 && next_y > 0 && next_x <= board_size && next_y <= board_size){
                 
-                    var bomb = document.getElementsByClassName(cell_class)[0].id;
-                    var arround_bomb = document.getElementsByClassName(cell_class)[0].classList.contains('arroundBomb');
-                
-                    if(bomb != 'bomb') check_cell(next_x, next_y);
-                }
+                var bomb = document.getElementsByClassName(cell_class)[0].id;
+            
+                if(bomb != 'bomb') check_cell(next_x, next_y);
             }
         }
     }
@@ -217,9 +200,14 @@ function check_cell(curr_x, curr_y){
 
 // 폭탄 인접 칸 폭탄 갯수 표시
 function arroundBomb(curr_x, curr_y){
-    var cell =  curr_x + '-' + curr_y;
-    var count =  document.getElementsByClassName(cell)[0].innerText;
-    document.getElementsByClassName(cell)[0].classList.add('count'+count)
+    var cell =  '.cell_' + curr_x + '-' + curr_y ;
+    var count =  document.querySelector(cell+ ' p').innerText;
+    document.querySelector(cell).classList.add('count'+count);
+}
+
+function setBombCount(){
+    bomb_count = document.getElementById('set_bomb').value;
+    resetBoard();
 }
 
 
